@@ -1,5 +1,5 @@
 # Nokia_project
-Projekt z noki na studia
+
 Dodałem skanowanie 1 pliku
 Używam pseudo-streamingu zamiast Hyperscan STREAM mode
 Nie wiem co jest problemem nie mogłem inaczej tego zrobic

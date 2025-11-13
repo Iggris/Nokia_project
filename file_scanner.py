@@ -71,7 +71,7 @@ class FileScanner:
                     chunks.append(chunk)
             
             # Przekaż wszystkie chunki do silnika strumieniowego
-            # Hyperscan Stream pamięta stan między chunkami!
+            
             self.engine.scan_stream(chunks, callback, context=filename)
             
             print(f"  Zakończono skanowanie: {chunk_number} chunków, {total_bytes} bajtów")

@@ -21,13 +21,29 @@ class HyperscanEngine(RegexEngine):
     
     def scan(self, data, callback):
         if self.db is None:
-            raise RuntimeError('Wzorce nie zostaly skompilowane')
+            raise RuntimeError('Patterns Database is not compiled')
         self.db.scan(data, match_event_handler=callback)
     
     def scan_stream(self, data_chunks, callback, context=None):
         if self.db is None:
-            raise RuntimeError('Wzorce nie zostaly skompilowane')
+            raise RuntimeError('Patterns Database is not compiled')
 
         with self.db.stream(match_event_handler=callback, context=context) as stream:
             for chunk in data_chunks:
                 stream.scan(chunk)
+
+    def save_db(self, filename="hs.db"):
+        if self.db is None:
+            raise RuntimeError("Patterns Database is not compiled")
+
+        serialized = hyperscan.dumpb(self.db)
+
+        with open(filename, "wb") as f:
+            f.write(serialized)
+
+    def load_db(self, filename):
+        with open(filename, "rb") as f:
+            data = f.read()
+
+        self.db = hyperscan.loadb(data, hyperscan.HS_MODE_STREAM)
+        self.db.scratch = hyperscan.Scratch(self.db)

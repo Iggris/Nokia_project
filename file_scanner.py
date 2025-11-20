@@ -2,8 +2,9 @@ import os
 from typing import List, Dict
 from engines.base_engine import RegexEngine  
 from engines.hs_engine import HyperscanEngine 
-from FileReader import FileReader
+from file_reader import FileReader
 from pathlib import Path
+
 
 class FileScanner:
     """Klasa do skanowania plików z użyciem różnych silników regex"""
@@ -23,28 +24,30 @@ class FileScanner:
     
     def _match_callback(self, pattern_id: int, start: int, end: int, flags: int, filename: str):
         """Callback wywoływany przy znalezieniu dopasowania
-        
-        
         """
-        pattern = self.engine.patterns[pattern_id]
-        actual_start = end - len(pattern)
-        
+        if pattern_id < len(self.engine.patterns):
+            pattern = self.engine.patterns[pattern_id]
+            pattern = pattern.decode('utf-8', errors='ignore')
+        else:
+            # if database was built from serialized compiled patterns,
+            # it's impossible to retrieve its pattern rule
+            pattern = "UNKNOWN"
+
         result = {
             'pattern_id': pattern_id,
-            'start': actual_start,
+            'start': start,
             'end': end,
-            'match': pattern.decode('utf-8', errors='ignore'),
+            'match': pattern,
             'filename': filename
         }
         self.results.append(result)
-        print(f"Znaleziono '{result['match']}' (wzorzec {pattern_id}) w {filename} na pozycji {actual_start}-{end}")
 
     def scan_file(self, filename: str, chunk_size: int = 4096) -> List[Dict]:
-        """Skanuje plik w trybie strumieniowym (STREAM mode)
+        """Scans file in streaming mode (STREAM mode)
         
         Args:
-            filename: Ścieżka do pliku
-            chunk_size: Rozmiar chunka w bajtach (domyślnie 4096)
+            filename: file path
+            chunk_size: Chunk size in bytes for scanning file (default 4096)
         """
         self.results = []
         
@@ -52,17 +55,13 @@ class FileScanner:
             self._match_callback(pattern_id, start, end, flags, filename)
         
         try:
-            print(f"  Rozpoczęto skanowanie pliku {filename}")
-
             self.engine.scan_stream(FileReader.chunks(filename, chunk_size=chunk_size), callback, context=filename)
             
-            print(f"  Zakończono skanowanie pliku {filename}")
-            
-            return self.results
-            
         except Exception as e:
-            print(f"Błąd podczas skanowania pliku {filename}: {e}")
-            raise
+            print(f"An error occurred while trying to scan file: '{filename}': {e}")
+
+        return self.results
+
     def scan_tree(self,root,follow_symlinks = False):
         root = Path(root)
         all_matches= []

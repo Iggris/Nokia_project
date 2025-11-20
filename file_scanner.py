@@ -2,7 +2,7 @@ import os
 from typing import List, Dict
 from engines.base_engine import RegexEngine  
 from engines.hs_engine import HyperscanEngine 
-from FileReader import FileReader
+from file_reader import FileReader
 from pathlib import Path
 
 class FileScanner:

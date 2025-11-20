@@ -5,6 +5,7 @@ from engines.hs_engine import HyperscanEngine
 from file_reader import FileReader
 from pathlib import Path
 
+
 class FileScanner:
     """Klasa do skanowania plików z użyciem różnych silników regex"""
     
@@ -23,21 +24,23 @@ class FileScanner:
     
     def _match_callback(self, pattern_id: int, start: int, end: int, flags: int, filename: str):
         """Callback wywoływany przy znalezieniu dopasowania
-        
-        
         """
-        pattern = self.engine.patterns[pattern_id]
-        actual_start = end - len(pattern)
-        
+        if pattern_id < len(self.engine.patterns):
+            pattern = self.engine.patterns[pattern_id]
+            pattern = pattern.decode('utf-8', errors='ignore')
+        else:
+            # if database was built from serialized compiled patterns,
+            # it's impossible to retrieve its pattern rule
+            pattern = "UNKNOWN"
+
         result = {
             'pattern_id': pattern_id,
-            'start': actual_start,
+            'start': start,
             'end': end,
-            'match': pattern.decode('utf-8', errors='ignore'),
+            'match': pattern,
             'filename': filename
         }
         self.results.append(result)
-        print(f"Znaleziono '{result['match']}' (wzorzec {pattern_id}) w {filename} na pozycji {actual_start}-{end}")
 
     def scan_file(self, filename: str, chunk_size: int = 4096) -> List[Dict]:
         """Skanuje plik w trybie strumieniowym (STREAM mode)
@@ -63,6 +66,7 @@ class FileScanner:
         except Exception as e:
             print(f"Błąd podczas skanowania pliku {filename}: {e}")
             raise
+
     def scan_tree(self,root,follow_symlinks = False):
         root = Path(root)
         all_matches= []

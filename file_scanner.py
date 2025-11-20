@@ -43,11 +43,11 @@ class FileScanner:
         self.results.append(result)
 
     def scan_file(self, filename: str, chunk_size: int = 4096) -> List[Dict]:
-        """Skanuje plik w trybie strumieniowym (STREAM mode)
+        """Scans file in streaming mode (STREAM mode)
         
         Args:
-            filename: Ścieżka do pliku
-            chunk_size: Rozmiar chunka w bajtach (domyślnie 4096)
+            filename: file path
+            chunk_size: Chunk size in bytes for scanning file (default 4096)
         """
         self.results = []
         
@@ -55,17 +55,12 @@ class FileScanner:
             self._match_callback(pattern_id, start, end, flags, filename)
         
         try:
-            print(f"  Rozpoczęto skanowanie pliku {filename}")
-
             self.engine.scan_stream(FileReader.chunks(filename, chunk_size=chunk_size), callback, context=filename)
             
-            print(f"  Zakończono skanowanie pliku {filename}")
-            
-            return self.results
-            
         except Exception as e:
-            print(f"Błąd podczas skanowania pliku {filename}: {e}")
-            raise
+            print(f"An error occurred while trying to scan file: '{filename}': {e}")
+
+        return self.results
 
     def scan_tree(self,root,follow_symlinks = False):
         root = Path(root)

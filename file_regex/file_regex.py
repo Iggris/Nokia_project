@@ -1,6 +1,6 @@
 class FileRegex():
-    def __init__(self):
-        self.plik="regexy.txt"
+    def __init__(self, filename):
+        self.plik = filename
         open(self.plik, "a", encoding="utf-8").close()
     def add_element(self,text):
         if not self.exist(text):
@@ -31,7 +31,7 @@ class FileRegex():
                 text = line.strip()
                 if text:
                     before_comma = text.split(",", 1)[0].strip()
-                    print(before_comma)
+                    # print(before_comma)
                     patterns.append(before_comma)
         return patterns
 

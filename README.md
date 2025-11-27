@@ -8,7 +8,9 @@ things to install to get this project up and running:
 Things done: 
 1) Searching a file using hyperscan in stream mode.
 2) Searching a directory using hyperscan in stream mode.
-
+3) possibility of changing the engine to python regex
+    -new opt flag --engine:
+    python main.py run regex.txt test_file.txt --engine (python or hyperscan)
 
 
 Things to do:

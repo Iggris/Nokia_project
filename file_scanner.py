@@ -2,6 +2,7 @@ import os
 from typing import List, Dict
 from engines.base_engine import RegexEngine  
 from engines.hs_engine import HyperscanEngine 
+from engines.python_engine import PythonEngine
 from file_reader import FileReader
 from pathlib import Path
 
@@ -15,6 +16,7 @@ class FileScanner:
             engine: Implementacja RegexEngine (domyślnie HyperscanEngine)
         """
         self.engine = engine or HyperscanEngine()
+        #self.engine = engine or PythonEngine()  #do porownania
         self.results = []
     
     def compile_patterns(self, patterns: List[str]) -> None:

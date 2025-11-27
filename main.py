@@ -3,6 +3,8 @@ import os
 import sys
 from file_scanner import FileScanner
 from file_regex.file_regex import FileRegex
+from engines.python_engine import PythonEngine
+from engines.hs_engine import HyperscanEngine
 
 
 def match_to_string(pattern_id, start, end, filename):
@@ -32,7 +34,7 @@ def main():
 
     # run
     run = subparsers.add_parser("run")
-
+    
     run.add_argument(
         "config",
         help="either a compiled Hyperscan database (created by "
@@ -50,11 +52,23 @@ def main():
         required=False,
         help="save results to file (default: stdout)"
     )
+    # dodanie cmd do wyboru silnika
+    run.add_argument(
+        "--engine",
+        choices=["hyperscan", "python"],
+        default="hyperscan",
+        help="regex engine to use (default: hyperscan)"
+    )
 
     args = parser.parse_args()
 
     if args.command == "run":
-        scanner = FileScanner()
+        #wybor silnika
+        if args.engine == "python":
+            engine = PythonEngine()
+        else:
+            engine = HyperscanEngine()
+        scanner = FileScanner(engine=engine)
 
         try:
             scanner.engine.load_db(args.config)

@@ -48,30 +48,60 @@ class PythonEngine(RegexEngine):
                     0,            # flags        
                     None                  
                 )
-    # The stream is fake—we buffer everything and scan it all at once.
     def scan_stream(self, data_chunks: Iterable[bytes], callback: Callable, context: Any = None) -> None:
-       
+        """
+        Scan data in streaming mode, processing each chunk individually.
+        Uses an overlap buffer to catch matches that span chunk boundaries.
+        """
         if not self.compiled_patterns:
             raise RuntimeError('Patterns Database is not compiled')
         
-
-        buffer = b''
+        # Buffer to store overlap from previous chunk
+        overlap_buffer = b''
+        total_offset = 0
+        
+        # Maximum pattern length to determine overlap size
+        max_pattern_length = max(
+            (len(p['original']) for p in self.compiled_patterns),
+            default=100
+        )
+        overlap_size = max(max_pattern_length * 2, 1000)
+        
         for chunk in data_chunks:
-            buffer += chunk
-        
-        try:
-            text = buffer.decode('utf-8', errors='ignore')
-        except Exception:
-            text = str(buffer)
-        
-       
-        for pattern_info in self.compiled_patterns:
-            for match in pattern_info['pattern'].finditer(text):
-                
-                callback(
-                    pattern_info['id'], 
-                    match.start(),       
-                    match.end(),        
-                    0,                    # flags
-                    context               
-                )
+            # Combine overlap from previous chunk with current chunk
+            combined = overlap_buffer + chunk
+            
+            try:
+                text = combined.decode('utf-8', errors='ignore')
+            except Exception:
+                text = str(combined)
+            
+            # Determine the offset adjustment for this chunk
+            chunk_start_offset = total_offset - len(overlap_buffer)
+            
+            # Scan the combined text
+            for pattern_info in self.compiled_patterns:
+                for match in pattern_info['pattern'].finditer(text):
+                    # Adjust match positions to global offsets
+                    match_start = chunk_start_offset + match.start()
+                    match_end = chunk_start_offset + match.end()
+                    
+                    # Only report matches that are in the "new" part of the chunk
+                    # (not in the overlap region, to avoid duplicates)
+                    if match.start() >= len(overlap_buffer) or total_offset == 0:
+                        callback(
+                            pattern_info['id'],
+                            match_start,
+                            match_end,
+                            0,  # flags
+                            context
+                        )
+            
+            # Update offset and prepare overlap for next iteration
+            total_offset += len(chunk)
+            
+            # Keep the last part of the chunk as overlap for next iteration
+            if len(combined) > overlap_size:
+                overlap_buffer = combined[-overlap_size:]
+            else:
+                overlap_buffer = combined

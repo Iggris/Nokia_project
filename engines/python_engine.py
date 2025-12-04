@@ -39,15 +39,22 @@ class PythonEngine(RegexEngine):
             text = str(data)
     
         for pattern_info in self.compiled_patterns:
-            for match in pattern_info['pattern'].finditer(text):
-               
-                callback(
-                    pattern_info['id'],  
-                    match.start(),        
-                    match.end(),         
-                    0,            # flags        
-                    None                  
-                )
+            # Find all overlapping matches by starting search from each position
+            pos = 0
+            while pos < len(text):
+                match = pattern_info['pattern'].search(text, pos)
+                if match:
+                    callback(
+                        pattern_info['id'],  
+                        match.start(),        
+                        match.end(),         
+                        0,            # flags        
+                        None                  
+                    )
+                    # Move forward by 1 to find overlapping matches
+                    pos = match.start() + 1
+                else:
+                    break
     def scan_stream(self, data_chunks: Iterable[bytes], callback: Callable, context: Any = None) -> None:
         """
         Scan data in streaming mode, processing each chunk individually.
@@ -81,21 +88,29 @@ class PythonEngine(RegexEngine):
             
             # Scan the combined text
             for pattern_info in self.compiled_patterns:
-                for match in pattern_info['pattern'].finditer(text):
-                    # Adjust match positions to global offsets
-                    match_start = chunk_start_offset + match.start()
-                    match_end = chunk_start_offset + match.end()
-                    
-                    # Only report matches that are in the "new" part of the chunk
-                    # (not in the overlap region, to avoid duplicates)
-                    if match.start() >= len(overlap_buffer) or total_offset == 0:
-                        callback(
-                            pattern_info['id'],
-                            match_start,
-                            match_end,
-                            0,  # flags
-                            context
-                        )
+                # Find all overlapping matches by starting search from each position
+                pos = 0
+                while pos < len(text):
+                    match = pattern_info['pattern'].search(text, pos)
+                    if match:
+                        # Adjust match positions to global offsets
+                        match_start = chunk_start_offset + match.start()
+                        match_end = chunk_start_offset + match.end()
+                        
+                        # Only report matches that are in the "new" part of the chunk
+                        # (not in the overlap region, to avoid duplicates)
+                        if match.start() >= len(overlap_buffer) or total_offset == 0:
+                            callback(
+                                pattern_info['id'],
+                                match_start,
+                                match_end,
+                                0,  # flags
+                                context
+                            )
+                        # Move forward by 1 to find overlapping matches
+                        pos = match.start() + 1
+                    else:
+                        break
             
             # Update offset and prepare overlap for next iteration
             total_offset += len(chunk)

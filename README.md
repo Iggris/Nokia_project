@@ -2,8 +2,9 @@
 
 things to install to get this project up and running:
 1) Python version Python 3.12.6 (https://www.python.org/downloads/)
-2) Hyperscan version  0.7.27 (pip install hyperscan)
-
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
 
 Things done: 
 1) Searching a file using hyperscan in stream mode.

@@ -15,12 +15,13 @@ class FileReader:
             raise ValueError(f"{file_path} is not a file")
 
     @staticmethod
-    def chunks(file_path: str, chunk_size: int = None) -> Iterable[bytes]:
+    def chunks(file_path: str, chunk_size: int = None, full_file: bool = False) -> Iterable[bytes]:
         """
         Yield file content in binary chunks.
 
         Validates the file before reading. Uses CHUNK_SIZE unless an
-        explicit chunk size is provided.
+        explicit chunk size is provided.If full_file is True, reads
+        entire file as single chunk.
 
         Args:
             file_path (str):
@@ -28,16 +29,25 @@ class FileReader:
             chunk_size (int, optional):
                 Size of each chunk in bytes. If not provided, the default
                 `FileReader.CHUNK_SIZE` is used.
+            full_file (bool, optional):
+                If True, read entire file as single chunk (default: False)
         """
 
         FileReader.validate(file_path)
 
-        if chunk_size is None:
-            chunk_size = FileReader.CHUNK_SIZE
-
         with open(file_path, "rb") as f:
-            while True:
-                chunk = f.read(chunk_size)
-                if not chunk:
-                    break
-                yield chunk
+            if full_file:
+                # Read entire file as single chunk
+                data = f.read()
+                if data:
+                    yield data
+            else:
+                # Read file in chunks
+                if chunk_size is None:
+                    chunk_size = FileReader.CHUNK_SIZE
+
+                while True:
+                    chunk = f.read(chunk_size)
+                    if not chunk:
+                        break
+                    yield chunk

@@ -35,24 +35,25 @@ class FileScanner:
 
         print(f"Regex with ID: {pattern_id}, filename: '{filename}', from: {start} end: {end}, match: '{match}'")
 
-    def scan_file(self, filename: str, chunk_size: int = 4096) -> None:
+    def scan_file(self, filename: str, chunk_size: int = 4096,full_file: bool = False) -> None:
         """Scans file in streaming mode (STREAM mode)
         
         Args:
             filename: file path
             chunk_size: Chunk size in bytes for scanning file (default 4096)
+            full_file: If True, read entire file as single chunk (default False)
         """
 
         def callback(pattern_id, start, end, flags, context):
             self._match_callback(pattern_id, start, end, flags, filename)
 
         try:
-            self.engine.scan_stream(FileReader.chunks(filename, chunk_size=chunk_size), callback, context=filename)
+            self.engine.scan_stream(FileReader.chunks(filename, chunk_size=chunk_size,full_file=full_file), callback, context=filename)
             
         except Exception as e:
             print(f"An error occurred while trying to scan file: '{filename}': {e}")
 
-    def scan_tree(self, root, follow_symlinks=False) -> None:
+    def scan_tree(self, root, follow_symlinks=False, full_file=False) -> None:
         root = Path(root)
         if not root.exists():
             print(f"[scan_tree] Directory {root} does not exist")
@@ -65,7 +66,7 @@ class FileScanner:
                 path = dirpath / name
 
                 try:
-                    self.scan_file(str(path))
+                    self.scan_file(str(path), full_file=full_file)
                 except PermissionError:
                     print(f"[scan_tree] No permissions for the file: {path}")
                 except Exception as e:

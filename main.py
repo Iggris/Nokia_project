@@ -63,6 +63,12 @@ def main():
         help="enable verbose output"
     )
 
+    run.add_argument(
+    "--full-block",
+    action="store_true",
+    help="read each file as single block instead of chunks "
+)
+
     args = parser.parse_args()
 
     if args.command == "run":
@@ -91,15 +97,15 @@ def main():
                 fr = FileRegex(args.config)
                 patterns = fr.elements()
                 scanner.compile_patterns(patterns)
+            
+        if os.path.isfile(args.target):
+            scanner.scan_file(args.target, full_file=args.full_block)
 
-            if os.path.isfile(args.target):
-                scanner.scan_file(args.target)
-
-            elif os.path.isdir(args.target):
-                scanner.scan_tree(args.target)
-            else:
-                print(f"cannot access '{args.target}': No such file or directory")
-
+        elif os.path.isdir(args.target):
+            scanner.scan_tree(args.target, full_file=args.full_block)
+        else:
+            print(f"cannot access '{args.target}': No such file or directory")
+    
     elif args.command == "build":
         fr = FileRegex(args.source)
         patterns = fr.elements()

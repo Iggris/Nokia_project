@@ -66,13 +66,9 @@ class PythonEngine(RegexEngine):
         # Buffer to store overlap from previous chunk
         overlap_buffer = b''
         total_offset = 0
-        
-        # Maximum pattern length to determine overlap size
-        max_pattern_length = max(
-            (len(p['original']) for p in self.compiled_patterns),
-            default=100
-        )
-        overlap_size = max(max_pattern_length * 2, 1000)
+        #fix
+        overlap_size = 50240  # Size of overlap to retain between chunks
+        # Track reported matches to avoid duplicates
         
         for chunk in data_chunks:
             # Combine overlap from previous chunk with current chunk
@@ -96,17 +92,21 @@ class PythonEngine(RegexEngine):
                         # Adjust match positions to global offsets
                         match_start = chunk_start_offset + match.start()
                         match_end = chunk_start_offset + match.end()
-                        
+                         # Create unique key for this match
+                       
                         # Only report matches that are in the "new" part of the chunk
                         # (not in the overlap region, to avoid duplicates)
+                        
+                            
                         if match.start() >= len(overlap_buffer) or total_offset == 0:
-                            callback(
-                                pattern_info['id'],
-                                match_start,
-                                match_end,
-                                0,  # flags
-                                context
+                                callback(
+                                    pattern_info['id'],
+                                    match_start,
+                                    match_end,
+                                    0,  # flags
+                                    context
                             )
+                            
                         # Move forward by 1 to find overlapping matches
                         pos = match.start() + 1
                     else:
@@ -120,3 +120,4 @@ class PythonEngine(RegexEngine):
                 overlap_buffer = combined[-overlap_size:]
             else:
                 overlap_buffer = combined
+            

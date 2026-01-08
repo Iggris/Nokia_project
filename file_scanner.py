@@ -1,6 +1,4 @@
 import os
-from multiprocessing.pool import Pool
-from re import match
 from typing import List, Dict
 from engines.base_engine import RegexEngine  
 from engines.hs_engine import HyperscanEngine 

@@ -98,13 +98,13 @@ def main():
                 patterns = fr.elements()
                 scanner.compile_patterns(patterns)
             
-        if os.path.isfile(args.target):
-            scanner.scan_file(args.target, full_file=args.full_block)
+            if os.path.isfile(args.target):
+                scanner.scan_file(args.target, full_file=args.full_block)
 
-        elif os.path.isdir(args.target):
-            scanner.scan_tree(args.target, full_file=args.full_block)
-        else:
-            print(f"cannot access '{args.target}': No such file or directory")
+            elif os.path.isdir(args.target):
+                scanner.scan_tree(args.target, full_file=args.full_block)
+            else:
+                print(f"cannot access '{args.target}': No such file or directory")
     
     elif args.command == "build":
         fr = FileRegex(args.source)

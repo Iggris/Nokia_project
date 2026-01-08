@@ -8,6 +8,13 @@ from file_regex.file_regex import FileRegex
 from file_scanner import FileScanner
 
 
+def init_worker():
+    pid = os.getpid()
+    cpu_count = os.cpu_count()
+    cpu = pid % cpu_count
+    os.sched_setaffinity(pid, {cpu})
+
+
 class FileScannerPool:
     """
     Class designed to use FileScanner with multiprocessing
@@ -57,10 +64,19 @@ class FileScannerPool:
             print(f"[scan_tree] Directory {root} does not exist")
             return
 
-        for dirpath, dirnames, filenames in os.walk(root, followlinks=follow_symlinks):
-            dirpath = Path(dirpath)
-            filenames = [dirpath / name for name in filenames]
-            args = [(patterns_path, engine, filename) for filename in filenames]
+        # for dirpath, dirnames, filenames in os.walk(root, followlinks=follow_symlinks):
+        #     dirpath = Path(dirpath)
+        #     filenames = [dirpath / name for name in filenames]
+        #     args = [(patterns_path, engine, filename) for filename in filenames]
+        #
+        #     with Pool() as pool:
+        #         pool.starmap(FileScannerPool.scan_file, args)
 
-            with Pool() as pool:
+        with Pool(initializer=init_worker) as pool:
+            for dirpath, dirnames, filenames in os.walk(root,
+                                                        followlinks=follow_symlinks):
+                dirpath = Path(dirpath)
+                filenames = [dirpath / name for name in filenames]
+                args = [(patterns_path, engine, filename) for filename in
+                        filenames]
                 pool.starmap(FileScannerPool.scan_file, args)

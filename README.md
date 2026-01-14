@@ -433,3 +433,6 @@ python main.py run patterns.txt ./src --engine python
 
 # Scan a single file using the Python engine and save to a file
 python main.py run patterns.txt ./src/main.py --engine python -o matches.txt
+
+### Testing
+python .\test_data\tools\run_file_reader_test.py

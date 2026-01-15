@@ -1,0 +1,63 @@
+{
+    "seed": 1,
+    "repeats": 3,
+    "engine": "both",
+    "pattern_words": {
+      "n": 200,
+      "min_len": 4,
+      "max_len": 10,
+      "word_boundaries": true
+    },
+    "tests": [
+      {
+        "name": "gen_20k_lines_len120_no_matches_stream_4k",
+        "source": "generated",
+        "chunk_mode": "stream",
+        "chunk_size": 4096,
+        "generated": { "num_lines": 20000, "avg_line_len": 120, "match_type": 0 }
+      },
+      {
+        "name": "gen_20k_lines_len120_few_matches_stream_4k",
+        "source": "generated",
+        "chunk_mode": "stream",
+        "chunk_size": 4096,
+        "generated": { "num_lines": 20000, "avg_line_len": 120, "match_type": 1, "p_few": 0.01 }
+      },
+      {
+        "name": "gen_20k_lines_len120_many_matches_stream_4k",
+        "source": "generated",
+        "chunk_mode": "stream",
+        "chunk_size": 4096,
+        "generated": { "num_lines": 20000, "avg_line_len": 120, "match_type": 2, "p_many": 0.35 }
+      },
+  
+      {
+        "name": "gen_100k_lines_len160_few_matches_stream_64k",
+        "source": "generated",
+        "chunk_mode": "stream",
+        "chunk_size": 65536,
+        "generated": { "num_lines": 100000, "avg_line_len": 160, "match_type": 1, "p_few": 0.01 }
+      },
+      {
+        "name": "gen_100k_lines_len160_many_matches_stream_64k",
+        "source": "generated",
+        "chunk_mode": "stream",
+        "chunk_size": 65536,
+        "generated": { "num_lines": 100000, "avg_line_len": 160, "match_type": 2, "p_many": 0.35 }
+      },
+  
+      {
+        "name": "gen_300k_lines_len120_few_matches_one_block",
+        "source": "generated",
+        "chunk_mode": "one_block",
+        "generated": { "num_lines": 300000, "avg_line_len": 120, "match_type": 1, "p_few": 0.01 }
+      },
+      {
+        "name": "gen_300k_lines_len120_many_matches_one_block",
+        "source": "generated",
+        "chunk_mode": "one_block",
+        "generated": { "num_lines": 300000, "avg_line_len": 120, "match_type": 2, "p_many": 0.35 }
+      }
+    ]
+  }
+  

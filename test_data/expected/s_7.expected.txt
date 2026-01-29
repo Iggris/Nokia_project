@@ -1,0 +1,2 @@
+Regex with ID: 1, filename: 's_7_input.txt', from: 0 end: 4, match: 'WARN'
+Regex with ID: 1, filename: 's_7_input.txt', from: 4 end: 8, match: 'WARN'

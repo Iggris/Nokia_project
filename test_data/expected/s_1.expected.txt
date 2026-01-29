@@ -1,0 +1,1 @@
+Regex with ID: 0, filename: 's_1_input.txt', from: 0 end: 5, match: 'ERROR'

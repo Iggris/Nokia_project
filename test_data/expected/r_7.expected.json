@@ -1,0 +1,10 @@
+{
+  "chunk_size": 2,
+  "full_file": false,
+  "chunks_hex": [
+    "3132",
+    "3334",
+    "35"
+  ],
+  "chunk_count": 3
+}

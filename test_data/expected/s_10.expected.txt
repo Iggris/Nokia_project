@@ -1,0 +1,2 @@
+Regex with ID: 0, filename: 's_10_input.txt', from: 0 end: 3, match: 'END'
+Regex with ID: 0, filename: 's_10_input.txt', from: 4 end: 7, match: 'END'

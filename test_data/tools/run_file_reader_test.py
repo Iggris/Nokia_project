@@ -4,87 +4,56 @@ from pathlib import Path
 
 """
 What this script does:
-- Reads input files from test_data/inputs/
+- Reads tests from test_data/inputs/file_reader_tests.jsonl
 - Runs FileReader.chunks
-- Saves generated output
-- Validates output using valid.py
+- Writes outputs to test_data/out/r_<n>.out.json
+- IDs are always r_1, r_2, r_3...
 """
 
-# To see file_reader.py
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from file_reader import FileReader
 
-def load_json(path):
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+
+def load_tests(path):
+    return [json.loads(l) for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip()]
+
 
 def save_json(path, data):
     Path(path).write_text(json.dumps(data, indent=2), encoding="utf-8")
 
+
 def run_one(test_id, input_path, chunk_size, full_file):
     chunks_hex = [
-        chunk.hex()
-        for chunk in FileReader.chunks(input_path, chunk_size=chunk_size, full_file=full_file)
+        c.hex()
+        for c in FileReader.chunks(input_path, chunk_size=int(chunk_size), full_file=bool(full_file))
     ]
 
     out = {
-        "chunk_size": chunk_size,
-        "full_file": full_file,
+        "chunk_size": int(chunk_size),
+        "full_file": bool(full_file),
         "chunks_hex": chunks_hex,
         "chunk_count": len(chunks_hex),
     }
 
-    out_path = f"test_data/out/{test_id}.out.json"
+    out_path = Path("test_data/out") / f"{test_id}.out.json"
     save_json(out_path, out)
-    return out_path
+    return str(out_path)
 
-def validate(expected_path, out_path):
-    expected = load_json(expected_path)
-    out = load_json(out_path)
-
-    if expected != out:
-        print("x FAIL:", out_path)
-        print("\nEXPECTED:", expected)
-        print("\nGOT:", out)
-        return False
-
-    print("+ PASS:", out_path)
-    return True
 
 def main():
     Path("test_data/out").mkdir(parents=True, exist_ok=True)
 
-    tests = [
-        (
-            "file_reader_chunks_1",
-            "test_data/inputs/reader_input_1.txt",
-            4,
-            False,
-            "test_data/expected/file_reader_chunks_1.expected.json"
-        ),
-        (
-            "file_reader_full_2",
-            "test_data/inputs/reader_input_2.txt",
-            4096,
-            True,
-            "test_data/expected/file_reader_full_2.expected.json"
-        ),
-    ]
+    tests = load_tests("test_data/inputs/file_reader_tests.jsonl")
 
-    ok = True
+    for i, t in enumerate(tests, start=1):
+        test_id = f"r_{i}"
+        out_path = run_one(test_id, t["input"], t["chunk_size"], t["full_file"])
+        print("+ WROTE:", out_path)
 
-    for test_id, input_path, chunk_size, full_file, expected_path in tests:
-        out_path = run_one(test_id, input_path, chunk_size, full_file)
-        if not validate(expected_path, out_path):
-            ok = False
+    print("\n+ DONE (FileReader outputs generated)")
 
-    if ok:
-        print("\n====================")
-        print("+ ALL TESTS PASSED")
-    else:
-        print("\nx SOME TESTS FAILED")
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()

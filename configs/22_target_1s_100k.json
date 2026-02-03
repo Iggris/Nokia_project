@@ -1,0 +1,25 @@
+{
+    "seed": 42,
+    "repeats": 5,
+    "engine": "hyperscan",
+    "comment": "100k regexów na dużych plikach - powinno dać ~1s+ skanowania",
+    
+    "regex_file": "patterns/simple_100k.txt",
+    
+    "tests": [
+      {
+        "name": "100k_300MB_stream",
+        "source": "file",
+        "file_path": "data/data_300mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 262144
+      },
+      {
+        "name": "100k_500MB_stream",
+        "source": "file",
+        "file_path": "data/data_500mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 262144
+      }
+    ]
+  }

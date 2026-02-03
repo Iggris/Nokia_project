@@ -6,7 +6,7 @@ import re
 import string
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Type
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Tuple, Type
 
 import psutil
 
@@ -66,7 +66,7 @@ class TextGenerator:
         p_many: float = 0.4,
     ) -> str:
         if not self.pattern_words:
-            raise ValueError("First, generate pattern_words and regexes.")
+            raise ValueError("TextGenerator has no pattern_words set.")
 
         texts: List[str] = []
         forbidden = set(self.pattern_words)
@@ -94,7 +94,7 @@ class TextGenerator:
 
 
 def null_callback(id: int, from_: int, to: int, flags: int, context: Any):
-    pass
+    return None
 
 
 def _get_proc() -> psutil.Process:
@@ -114,6 +114,16 @@ def file_one_chunk(path: str) -> Iterable[bytes]:
     with open(path, "rb") as f:
         yield f.read()
 
+
+def read_regex_file(path: str) -> List[str]:
+    out: List[str] = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            s = line.strip()
+            if not s or s.startswith("#"):
+                continue
+            out.append(s)
+    return out
 def benchmark_stream_precompiled(
     engine_cls: Type,
     patterns: List[bytes],
@@ -213,18 +223,64 @@ def _engine_classes(engine_arg: str) -> Sequence[Type]:
     return (PythonEngine, HyperscanEngine)
 
 
-def _build_patterns(seed: int, pp: PatternParams) -> List[bytes]:
+_SIMPLE_WORD = re.compile(r"^[A-Za-z0-9_]+$")
+_WORD_BOUNDARY = re.compile(r"^\\b([A-Za-z0-9_]+)\\b$")
+
+
+def _build_patterns(
+    seed: int,
+    pp: PatternParams,
+    explicit_regexes: Optional[List[str]] = None,
+) -> Tuple[List[bytes], TextGenerator]:
     random.seed(seed)
+
+    if explicit_regexes is not None:
+        cleaned: List[str] = []
+        for r in explicit_regexes:
+            if r is None:
+                continue
+            s = str(r).strip()
+            if not s or s.startswith("#"):
+                continue
+            cleaned.append(s)
+
+        if not cleaned:
+            raise ValueError("explicit_regexes is empty after cleaning (no usable regex patterns).")
+
+        patterns = [s.encode("utf-8") for s in cleaned]
+
+        gen = TextGenerator()
+
+        tokens: List[str] = []
+        for s in cleaned:
+            m = _WORD_BOUNDARY.match(s)
+            if m:
+                tokens.append(m.group(1))
+            elif _SIMPLE_WORD.match(s):
+                tokens.append(s)
+
+        if tokens:
+            gen.pattern_words = list(dict.fromkeys(tokens))
+        else:
+            gen.generate_pattern_words(
+                n=max(1, min(pp.n, 8)),
+                min_len=pp.min_len,
+                max_len=pp.max_len,
+            )
+
+        return patterns, gen
+
     gen = TextGenerator()
     gen.generate_pattern_words(n=pp.n, min_len=pp.min_len, max_len=pp.max_len)
     regexes = gen.generate_regexes(use_word_boundaries=pp.word_boundaries)
-    return [r.encode("utf-8") for r in regexes], gen
+    patterns = [r.encode("utf-8") for r in regexes]
+    return patterns, gen
 
 
-def _make_chunks_for_scenario(s: Scenario, gen_obj: Optional[TextGenerator]) -> Callable[[], Iterable[bytes]]:
+def _make_chunks_for_scenario(s: Scenario, gen_obj: TextGenerator) -> Callable[[], Iterable[bytes]]:
     if s.source == "generated":
-        assert s.gen is not None
-        assert gen_obj is not None
+        if s.gen is None:
+            raise ValueError("Scenario(source=generated) must have 'gen' parameters set.")
         text_str = gen_obj.generate_text(
             num_lines=s.gen.num_lines,
             avg_line_len=s.gen.avg_line_len,
@@ -236,29 +292,26 @@ def _make_chunks_for_scenario(s: Scenario, gen_obj: Optional[TextGenerator]) -> 
 
         if s.chunk_mode == "one_block":
             return lambda d=data: one_block(d)
-        else:
-            return lambda d=data, cs=s.chunk_size: mem_chunks(d, chunk_size=cs)
+        return lambda d=data, cs=s.chunk_size: mem_chunks(d, chunk_size=cs)
 
     # file
-    assert s.file_path is not None
+    if not s.file_path:
+        raise ValueError("Scenario(source=file) must have file_path.")
     FileReader.validate(s.file_path)
 
     if s.chunk_mode == "one_block":
         return lambda p=s.file_path: file_one_chunk(p)
-    else:
-        return lambda p=s.file_path, cs=s.chunk_size: FileReader.chunks(p, chunk_size=cs)
+    return lambda p=s.file_path, cs=s.chunk_size: FileReader.chunks(p, chunk_size=cs)
 
 
 def run_scenarios(
     scenarios: List[Scenario],
-    seed: int,
-    pattern_params: PatternParams,
+    patterns: List[bytes],
+    gen_obj: TextGenerator,
     engine_arg: str,
     repeats: int,
     verbose: bool = True,
 ) -> List[Dict[str, Any]]:
-    patterns, gen_obj = _build_patterns(seed, pattern_params)
-
     results: List[Dict[str, Any]] = []
     engines = _engine_classes(engine_arg)
 
@@ -266,7 +319,7 @@ def run_scenarios(
         if verbose:
             print(f"\nSCENARIO: {s.name}  source={s.source}  chunk_mode={s.chunk_mode}  chunk_size={s.chunk_size}")
 
-        make_chunks = _make_chunks_for_scenario(s, gen_obj if s.source == "generated" else None)
+        make_chunks = _make_chunks_for_scenario(s, gen_obj)
 
         for engine_cls in engines:
             if verbose:
@@ -292,25 +345,48 @@ def run_scenarios(
 
 def default_scenarios() -> List[Scenario]:
     return [
-        Scenario(name="small_no_matches_stream", source="generated",
-                 gen=GeneratedTextParams(num_lines=200, avg_line_len=60, match_type=0),
-                 chunk_mode="stream", chunk_size=4096),
-        Scenario(name="small_few_matches_stream", source="generated",
-                 gen=GeneratedTextParams(num_lines=200, avg_line_len=60, match_type=1),
-                 chunk_mode="stream", chunk_size=4096),
-        Scenario(name="small_many_matches_stream", source="generated",
-                 gen=GeneratedTextParams(num_lines=200, avg_line_len=60, match_type=2),
-                 chunk_mode="stream", chunk_size=4096),
-
-        Scenario(name="large_no_matches_stream", source="generated",
-                 gen=GeneratedTextParams(num_lines=5000, avg_line_len=80, match_type=0),
-                 chunk_mode="stream", chunk_size=4096),
-        Scenario(name="large_few_matches_stream", source="generated",
-                 gen=GeneratedTextParams(num_lines=5000, avg_line_len=80, match_type=1),
-                 chunk_mode="stream", chunk_size=4096),
-        Scenario(name="large_many_matches_stream", source="generated",
-                 gen=GeneratedTextParams(num_lines=5000, avg_line_len=80, match_type=2),
-                 chunk_mode="stream", chunk_size=4096),
+        Scenario(
+            name="small_no_matches_stream",
+            source="generated",
+            gen=GeneratedTextParams(num_lines=200, avg_line_len=60, match_type=0),
+            chunk_mode="stream",
+            chunk_size=4096,
+        ),
+        Scenario(
+            name="small_few_matches_stream",
+            source="generated",
+            gen=GeneratedTextParams(num_lines=200, avg_line_len=60, match_type=1, p_few=0.02),
+            chunk_mode="stream",
+            chunk_size=4096,
+        ),
+        Scenario(
+            name="small_many_matches_stream",
+            source="generated",
+            gen=GeneratedTextParams(num_lines=200, avg_line_len=60, match_type=2, p_many=0.4),
+            chunk_mode="stream",
+            chunk_size=4096,
+        ),
+        Scenario(
+            name="large_no_matches_stream",
+            source="generated",
+            gen=GeneratedTextParams(num_lines=5000, avg_line_len=80, match_type=0),
+            chunk_mode="stream",
+            chunk_size=4096,
+        ),
+        Scenario(
+            name="large_few_matches_stream",
+            source="generated",
+            gen=GeneratedTextParams(num_lines=5000, avg_line_len=80, match_type=1, p_few=0.02),
+            chunk_mode="stream",
+            chunk_size=4096,
+        ),
+        Scenario(
+            name="large_many_matches_stream",
+            source="generated",
+            gen=GeneratedTextParams(num_lines=5000, avg_line_len=80, match_type=2, p_many=0.4),
+            chunk_mode="stream",
+            chunk_size=4096,
+        ),
     ]
 def load_config(path: str) -> Dict[str, Any]:
     with open(path, "r", encoding="utf-8") as f:
@@ -360,30 +436,28 @@ def scenarios_from_config(cfg: Dict[str, Any]) -> List[Scenario]:
     return out
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="test_capabilities.py",
-        description="Regex engines capability/benchmark runner: default tests or fully custom CLI/config tests.",
+        prog="test_capability.py",
+        description="Regex engines benchmark runner: default tests or custom CLI/config tests.",
     )
 
     p.add_argument("--output", default="benchmark_results_stream.json", help="Output JSON file.")
-    p.add_argument("--seed", type=int, default=1, help="Random seed for pattern generation.")
+    p.add_argument("--seed", type=int, default=1, help="Random seed.")
     p.add_argument("--repeats", type=int, default=5, help="How many scans per scenario.")
     p.add_argument("--engine", choices=["python", "hyperscan", "both"], default="both", help="Which engine(s) to run.")
     p.add_argument("--quiet", action="store_true", help="Less console output.")
+    p.add_argument("--config", help="Path to JSON config with multiple tests.")
 
-    # pattern generation parameters
+    # pattern generation parameters (used when no regex_file/regexes in config)
     p.add_argument("--pattern-count", type=int, default=8, help="n in generate_pattern_words(n=...).")
     p.add_argument("--pattern-min-len", type=int, default=4, help="min_len in generate_pattern_words.")
     p.add_argument("--pattern-max-len", type=int, default=8, help="max_len in generate_pattern_words.")
     p.add_argument("--no-word-boundaries", action="store_true", help="Do not wrap words with \\b...\\b.")
 
-    # either use --config OR define a single scenario via flags
-    p.add_argument("--config", help="Path to JSON config with multiple tests (overrides single-scenario flags).")
-
+    # single-scenario mode
     src = p.add_mutually_exclusive_group()
     src.add_argument("--generated", action="store_true", help="Run a generated-text scenario (single scenario).")
     src.add_argument("--file", dest="file_path", help="Run a file scenario (single scenario).")
 
-    # scenario params (for single scenario mode)
     p.add_argument("--name", default="custom", help="Scenario name (single scenario mode).")
     p.add_argument("--chunk-mode", choices=["stream", "one_block"], default="stream", help="Chunking mode.")
     p.add_argument("--chunk-size", type=int, default=4096, help="Chunk size in bytes for stream mode.")
@@ -411,7 +485,6 @@ def main():
         word_boundaries=not args.no_word_boundaries,
     )
 
-    # 1) CONFIG MODE
     if args.config:
         cfg = load_config(args.config)
 
@@ -427,18 +500,27 @@ def main():
             word_boundaries=bool(pp_cfg.get("word_boundaries", pattern_params.word_boundaries)),
         )
 
+        explicit_regexes: Optional[List[str]] = None
+        if "regex_file" in cfg:
+            explicit_regexes = read_regex_file(cfg["regex_file"])
+        elif "regexes" in cfg:
+            explicit_regexes = list(cfg["regexes"])
+
+        patterns, gen_obj = _build_patterns(seed, pattern_params, explicit_regexes=explicit_regexes)
         scenarios = scenarios_from_config(cfg)
+
         results = run_scenarios(
             scenarios=scenarios,
-            seed=seed,
-            pattern_params=pattern_params,
+            patterns=patterns,
+            gen_obj=gen_obj,
             engine_arg=engine_arg,
             repeats=repeats,
             verbose=verbose,
         )
 
-    # 2) SINGLE SCENARIO MODE (flags)
     elif args.generated or args.file_path:
+        patterns, gen_obj = _build_patterns(args.seed, pattern_params, explicit_regexes=None)
+
         if args.generated:
             scenarios = [
                 Scenario(
@@ -468,19 +550,19 @@ def main():
 
         results = run_scenarios(
             scenarios=scenarios,
-            seed=args.seed,
-            pattern_params=pattern_params,
+            patterns=patterns,
+            gen_obj=gen_obj,
             engine_arg=args.engine,
             repeats=args.repeats,
             verbose=verbose,
         )
 
-    # 3) DEFAULT MODE (no args) -> run built-in tests
     else:
+        patterns, gen_obj = _build_patterns(args.seed, pattern_params, explicit_regexes=None)
         results = run_scenarios(
             scenarios=default_scenarios(),
-            seed=args.seed,
-            pattern_params=pattern_params,
+            patterns=patterns,
+            gen_obj=gen_obj,
             engine_arg=args.engine,
             repeats=args.repeats,
             verbose=verbose,

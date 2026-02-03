@@ -1,0 +1,60 @@
+{
+    "seed": 42,
+    "repeats": 3,
+    "engine": "hyperscan",
+    "comment": "Kompleksowy test dla 6GB RAM - 25k prostych regexów, różne rozmiary plików i chunków",
+    
+    "regex_file": "patterns/simple_25k.txt",
+    
+    "tests": [
+      {
+        "name": "25k_50MB_stream",
+        "source": "file",
+        "file_path": "data/data_50mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 65536
+      },
+      {
+        "name": "25k_100MB_stream",
+        "source": "file",
+        "file_path": "data/data_100mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 65536
+      },
+      {
+        "name": "25k_150MB_stream",
+        "source": "file",
+        "file_path": "data/data_150mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 65536
+      },
+      {
+        "name": "25k_200MB_stream",
+        "source": "file",
+        "file_path": "data/data_200mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 65536
+      },
+      {
+        "name": "25k_100MB_chunk4k",
+        "source": "file",
+        "file_path": "data/data_100mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 4096
+      },
+      {
+        "name": "25k_100MB_chunk256k",
+        "source": "file",
+        "file_path": "data/data_100mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 262144
+      },
+      {
+        "name": "25k_100MB_oneblock",
+        "source": "file",
+        "file_path": "data/data_100mb.bin",
+        "chunk_mode": "one_block",
+        "chunk_size": 65536
+      }
+    ]
+  }

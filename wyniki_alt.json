@@ -1,0 +1,58 @@
+[
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 2,
+    "compile": {
+      "wall_time": 1.77396852999982,
+      "cpu_user": 1.7,
+      "cpu_sys": 0.08,
+      "mem_delta": 14241792,
+      "mem_after": 35737600
+    },
+    "scan": {
+      "times_wall": [
+        0.6386610190002102,
+        0.013135078999766847
+      ],
+      "avg_time_wall": 0.32589804899998853,
+      "cpu_user": 0.0,
+      "cpu_sys": 0.65,
+      "mem_delta": 262144,
+      "mem_after": 35999744
+    },
+    "scenario": "alt_50x1000_50MB",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 65536,
+    "file_path": "data/data_50mb.bin"
+  },
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 2,
+    "compile": {
+      "wall_time": 1.6040594219998638,
+      "cpu_user": 1.61,
+      "cpu_sys": 0.0,
+      "mem_delta": 0,
+      "mem_after": 35999744
+    },
+    "scan": {
+      "times_wall": [
+        1.0646171960001993,
+        0.0242555260001609
+      ],
+      "avg_time_wall": 0.5444363610001801,
+      "cpu_user": 0.08000000000000007,
+      "cpu_sys": 1.0,
+      "mem_delta": 131072,
+      "mem_after": 36130816
+    },
+    "scenario": "alt_50x1000_100MB",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 65536,
+    "file_path": "data/data_100mb.bin"
+  }
+]

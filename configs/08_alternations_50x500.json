@@ -1,0 +1,25 @@
+{
+    "seed": 42,
+    "repeats": 2,
+    "engine": "hyperscan",
+    "comment": "Alternacje 50 wzorców × 1000 alternacji - więcej obciążenia",
+    
+    "regex_file": "patterns/alt_50_x_1000.txt",
+    
+    "tests": [
+      {
+        "name": "alt_50x1000_50MB",
+        "source": "file",
+        "file_path": "data/data_50mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 65536
+      },
+      {
+        "name": "alt_50x1000_100MB",
+        "source": "file",
+        "file_path": "data/data_100mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 65536
+      }
+    ]
+  }

@@ -1,0 +1,89 @@
+[
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 3,
+    "compile": {
+      "wall_time": 277.954129447,
+      "cpu_user": 264.17,
+      "cpu_sys": 13.56,
+      "mem_delta": 2107838464,
+      "mem_after": 2146492416
+    },
+    "scan": {
+      "times_wall": [
+        1.0051019479999468,
+        0.21118056499994964,
+        0.23261929900013456
+      ],
+      "avg_time_wall": 0.482967270666677,
+      "cpu_user": 0.9099999999999682,
+      "cpu_sys": 0.5400000000000009,
+      "mem_delta": 655360,
+      "mem_after": 2147147776
+    },
+    "scenario": "simple_100k_50MB",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 65536,
+    "file_path": "data/data_50mb.bin"
+  },
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 3,
+    "compile": {
+      "wall_time": 260.94607500999996,
+      "cpu_user": 255.42999999999995,
+      "cpu_sys": 4.989999999999998,
+      "mem_delta": 445427712,
+      "mem_after": 2322341888
+    },
+    "scan": {
+      "times_wall": [
+        1.984987345000036,
+        0.3780839820001347,
+        0.36826603800000157
+      ],
+      "avg_time_wall": 0.9104457883333907,
+      "cpu_user": 1.0500000000000682,
+      "cpu_sys": 1.6799999999999997,
+      "mem_delta": 0,
+      "mem_after": 2322341888
+    },
+    "scenario": "simple_100k_100MB",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 65536,
+    "file_path": "data/data_100mb.bin"
+  },
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 3,
+    "compile": {
+      "wall_time": 235.27546467499997,
+      "cpu_user": 231.40999999999997,
+      "cpu_sys": 3.6900000000000013,
+      "mem_delta": 332058624,
+      "mem_after": 2384158720
+    },
+    "scan": {
+      "times_wall": [
+        3.892217187999904,
+        0.9026996699999472,
+        0.8739499929997692
+      ],
+      "avg_time_wall": 1.8896222836665402,
+      "cpu_user": 3.07000000000005,
+      "cpu_sys": 2.599999999999998,
+      "mem_delta": 0,
+      "mem_after": 2384158720
+    },
+    "scenario": "simple_100k_200MB",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 65536,
+    "file_path": "data/data_200mb.bin"
+  }
+]

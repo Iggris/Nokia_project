@@ -1,0 +1,58 @@
+[
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 2,
+    "compile": {
+      "wall_time": 1.1792807870001525,
+      "cpu_user": 1.0899999999999999,
+      "cpu_sys": 0.08,
+      "mem_delta": 32157696,
+      "mem_after": 52338688
+    },
+    "scan": {
+      "times_wall": [
+        0.4311238029999913,
+        0.02113048000001072
+      ],
+      "avg_time_wall": 0.22612714150000102,
+      "cpu_user": 0.0,
+      "cpu_sys": 0.44999999999999996,
+      "mem_delta": 786432,
+      "mem_after": 53125120
+    },
+    "scenario": "bounded_200_gap500_50MB",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 65536,
+    "file_path": "data/bounded_50mb.bin"
+  },
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 2,
+    "compile": {
+      "wall_time": 0.9825517730000684,
+      "cpu_user": 0.9800000000000002,
+      "cpu_sys": 0.0,
+      "mem_delta": 114688,
+      "mem_after": 53239808
+    },
+    "scan": {
+      "times_wall": [
+        0.8274294570001075,
+        0.04041281499985416
+      ],
+      "avg_time_wall": 0.43392113599998083,
+      "cpu_user": 0.06000000000000005,
+      "cpu_sys": 0.8099999999999999,
+      "mem_delta": 0,
+      "mem_after": 53239808
+    },
+    "scenario": "bounded_200_gap500_100MB",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 65536,
+    "file_path": "data/bounded_100mb.bin"
+  }
+]

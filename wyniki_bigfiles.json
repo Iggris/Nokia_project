@@ -1,0 +1,95 @@
+[
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 5,
+    "compile": {
+      "wall_time": 38.527418330000046,
+      "cpu_user": 37.61,
+      "cpu_sys": 0.8300000000000001,
+      "mem_delta": 666845184,
+      "mem_after": 691707904
+    },
+    "scan": {
+      "times_wall": [
+        2.2201989619999836,
+        0.49275863700000855,
+        0.48479593700000123,
+        0.4897589519999883,
+        0.4831862259999866
+      ],
+      "avg_time_wall": 0.8341397427999937,
+      "cpu_user": 2.3100000000000023,
+      "cpu_sys": 0.9899999999999999,
+      "mem_delta": 655360,
+      "mem_after": 692363264
+    },
+    "scenario": "25k_500MB_stream",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 262144,
+    "file_path": "data/data_500mb.bin"
+  },
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 5,
+    "compile": {
+      "wall_time": 37.265144212999985,
+      "cpu_user": 37.23,
+      "cpu_sys": 0.010000000000000009,
+      "mem_delta": 110358528,
+      "mem_after": 725569536
+    },
+    "scan": {
+      "times_wall": [
+        3.626219307999918,
+        0.770573397000021,
+        0.7678173870000364,
+        0.7727760000000217,
+        0.7717542179999555
+      ],
+      "avg_time_wall": 1.3418280619999905,
+      "cpu_user": 3.8799999999999955,
+      "cpu_sys": 1.42,
+      "mem_delta": 0,
+      "mem_after": 725569536
+    },
+    "scenario": "25k_800MB_stream",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 262144,
+    "file_path": "data/data_800mb.bin"
+  },
+  {
+    "engine": "HyperscanEngine",
+    "mode": "stream_precompiled",
+    "repeats": 5,
+    "compile": {
+      "wall_time": 36.92036878399995,
+      "cpu_user": 36.80000000000001,
+      "cpu_sys": 0.0900000000000003,
+      "mem_delta": 81244160,
+      "mem_after": 729657344
+    },
+    "scan": {
+      "times_wall": [
+        3.9083475449999696,
+        1.7036606939999501,
+        0.9874422330000243,
+        0.9910948499999677,
+        0.9813345309999022
+      ],
+      "avg_time_wall": 1.7143759705999628,
+      "cpu_user": 4.8799999999999955,
+      "cpu_sys": 1.8399999999999994,
+      "mem_delta": 131072,
+      "mem_after": 729788416
+    },
+    "scenario": "25k_1000MB_stream",
+    "source": "file",
+    "chunk_mode": "stream",
+    "chunk_size": 262144,
+    "file_path": "data/data_1000mb.bin"
+  }
+]

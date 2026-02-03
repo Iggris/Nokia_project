@@ -1,0 +1,25 @@
+{
+    "seed": 42,
+    "repeats": 2,
+    "engine": "hyperscan",
+    "comment": "Bounded gap=500 - BARDZO WYMAGAJĄCE! Tylko 200 wzorców. Może zużyć dużo RAM!",
+    
+    "regex_file": "patterns/bounded_200_gap500.txt",
+    
+    "tests": [
+      {
+        "name": "bounded_200_gap500_50MB",
+        "source": "file",
+        "file_path": "data/bounded_50mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 65536
+      },
+      {
+        "name": "bounded_200_gap500_100MB",
+        "source": "file",
+        "file_path": "data/bounded_100mb.bin",
+        "chunk_mode": "stream",
+        "chunk_size": 65536
+      }
+    ]
+  }
